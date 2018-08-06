@@ -2,6 +2,7 @@
 #include "ludutils.h"
 #include "lud.h"
 
+
 int main(int argc, char *argv[]){
 	Matrix matrix = read_csv("test.csv");
 	print_matrix(matrix);

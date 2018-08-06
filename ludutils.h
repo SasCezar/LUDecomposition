@@ -169,4 +169,23 @@ Matrix matrix_multiplication(Matrix a,Matrix b){
     return res;
 }
 
+Matrix duplicate_matrix(Matrix mat){
+    int n = mat.n;
+
+    float **matrix = (float **)malloc(n * sizeof(float *)); ;
+
+    float sum = 0;
+    for(int i = 0; i < n; i++)
+    {
+        matrix[i] = (float *)malloc(n * sizeof(float));
+        for(int j = 0; j < n; j++)
+        {
+            matrix[i][j] = mat.matrix[i][j];      
+        }
+    }
+    
+    Matrix res = {.matrix = matrix, .n = n};
+    return res;
+}
+
 #endif
