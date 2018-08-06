@@ -1,0 +1,55 @@
+\documentclass[12pt, a4paper, openright, oneside]{book}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage[final]{pdfpages}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{tabularx, tabulary, array}
+\usepackage{algorithm,algpseudocode}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{rotating}
+\usepackage{pdfpages}
+\usepackage{geometry}
+\usepackage{subcaption}
+
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+\graphicspath{{images/}}
+
+\pagestyle{plain} 
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+        
+        \LARGE
+        \textbf{LU Decomposition: \\ Three Frameworks Comparison}
+        
+        \vspace{0.5cm}
+		\Large
+        Calcolo Parallelo
+        
+        \vspace{1.5cm}
+        \large
+        Cezar Angelo Sas - 781563
+                
+    \end{center}
+\end{titlepage}
+
+
+\tableofcontents
+\include{Introduction}
+\include{MatrixDecomposition}
+\include{Results}
+\include{Conclusions}
+\include{Bibliography}
+\end{document}
