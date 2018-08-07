@@ -3,36 +3,6 @@
 
 #include "ludutils.h"
 
-LU split_lu(float **a, int n){
-    float **L = initalize_matrix(n, n);
-    float **U = initalize_matrix(n, n);
-
-    int i, j;
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-        {
-            if (i < j)
-            {
-                U[i][j] = a[i][j];
-            }
-            if (i > j){
-                L[i][j] = a[i][j];
-            }
-            if (i == j){
-                L[i][j] = 1;
-                U[i][j] = a[i][j];
-            }
-        }
-    }
-
-
-    Matrix mL = { .matrix = L, .n = n};
-    Matrix mU = { .matrix = U, .n = n};
-    LU decomposition = { .L = mL, .U = mU};
-    return decomposition;
-}
-
 LU decompose_serial(Matrix mat){
     int n = mat.n;
     float **matrix = mat.matrix;

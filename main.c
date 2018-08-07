@@ -1,12 +1,12 @@
 #include <iostream>
 #include "ludutils.h"
-#include "lud.h"
+#include "lud_omp.h"
 
 
 int main(int argc, char *argv[]){
-	Matrix matrix = read_csv("test.csv");
+	Matrix matrix = read_csv("test_55.csv");
 	print_matrix(matrix);
-	LU result = decompose_serial(matrix);
+	LU result = decompose_omp(matrix);
 	printf("Lower\n");
 	print_matrix(result.L);
 	printf("Upper\n");

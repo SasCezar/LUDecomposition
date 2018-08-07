@@ -32,6 +32,35 @@ typedef struct{
     Matrix U;
 } LU;
 
+LU split_lu(float **a, int n){
+    float **L = initalize_matrix(n, n);
+    float **U = initalize_matrix(n, n);
+
+    int i, j;
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            if (i < j)
+            {
+                U[i][j] = a[i][j];
+            }
+            if (i > j){
+                L[i][j] = a[i][j];
+            }
+            if (i == j){
+                L[i][j] = 1;
+                U[i][j] = a[i][j];
+            }
+        }
+    }
+
+
+    Matrix mL = { .matrix = L, .n = n};
+    Matrix mU = { .matrix = U, .n = n};
+    LU decomposition = { .L = mL, .U = mU};
+    return decomposition;
+}
 
 /**
  * Class that implements an invalid file path exception
@@ -99,14 +128,14 @@ Matrix read_csv(char* path){
     while ((read = getline (&buffer, &len, fp)) != -1) {
         matrix[idx] = (float *)malloc(n * sizeof(float));
 
-        char *token = strtok(buffer, ";"); // Split the row using the ';' char
+        char *token = strtok(buffer, ","); // Split the row using the ';' char
         int j = 0;
         while (token != NULL) // Iterate over the tokens extracted by strtok function
         {
             sscanf(token, "%f", &cell);
             matrix[idx][j] = cell;
             j++;
-            token = strtok(NULL, ";");
+            token = strtok(NULL, ",");
         }
         if (j != n) {
                 throw not_valid_file("Invalid informations in file.\nThe number of matrix cols is not equal to the cols defined in file.");
