@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 float **initalize_matrix(int rows, int cols) {
     float **matrix = (float **)malloc(rows * sizeof(float *)); ;
@@ -196,6 +196,48 @@ Matrix matrix_multiplication(Matrix a,Matrix b){
     }
     Matrix res = {.matrix = mc, .n = n};
     return res;
+}
+
+Matrix matrix_difference(Matrix a, Matrix b){
+    int n = a.n;
+    float **ma = a.matrix;
+    float **mb = b.matrix;
+    float **mc = initalize_matrix(n, n);
+
+
+    float sum = 0;
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < n; j++)
+        {
+            mc[i][j] = ma[i][j] - mb[i][j];
+        }
+    }
+    Matrix res = {.matrix = mc, .n = n};
+    return res;
+}
+
+
+double frobenius_norm(Matrix matrix){
+    float **A = matrix.matrix;
+    float sum = 0;
+    
+    for(int i = 0; i < matrix.n; i++)
+    {
+        for(int j = 0; j < matrix.n; j++)
+        {
+            sum += A[i][j] * A[i][j];
+        }        
+    }
+    
+    double norm = sqrt(sum);
+    return norm;
+}
+
+double compute_error(Matrix a, Matrix b){
+    Matrix difference = matrix_difference(a, b);
+    double error = frobenius_norm(difference);
+    return error;
 }
 
 Matrix duplicate_matrix(Matrix mat){
