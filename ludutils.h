@@ -100,6 +100,30 @@ char* concat(const char *s1, const char *s2)
     return result;
 }
 
+void partialPivot(int n, double** a, double* b, int j){
+	int i,k,m,rowx;
+	double xfac, temp, temp1, amax;
+
+	amax = (double) fabs(a[j][j]);
+    m = j;
+    for (i=j+1; i<n; i++){   /* Find the row with largest pivot */
+    	xfac = (double) fabs(a[i][j]);
+    	if(xfac > amax) {amax = xfac; m=i;}
+    }
+
+    if(m != j) {  /* Row interchanges */
+    	rowx = rowx+1;
+    	temp1 = b[j];
+    	b[j]  = b[m];
+    	b[m]  = temp1;
+    	for(k=j; k<n; k++) {
+    		temp = a[j][k];
+    		a[j][k] = a[m][k];
+    		a[m][k] = temp;
+    	}
+    }
+}
+
 Matrix read_csv(char* path){
     /**
      * Reads a csv files and creates a matrix

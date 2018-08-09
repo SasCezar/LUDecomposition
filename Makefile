@@ -3,3 +3,6 @@ main.exe: main.o
 
 main.o: main.c lud.h
 	g++ -c main.c -o main.o
+
+clean:
+    rm *o

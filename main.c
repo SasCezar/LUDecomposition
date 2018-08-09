@@ -1,21 +1,28 @@
-#include <iostream>
+// #include <iostream>
 #include <time.h>
- #include "lud_omp.h"
+#include<sys/time.h>
+// #include "lud_omp.h"
 // #include "lud.h"
+#include "lud_mpi.h"
 #include "ludutils.h"
 //#include "ludcrout.h"
 
 
 int main(int argc, char *argv[]){
 	printf("Loading matrix\n");
-	Matrix matrix = read_csv("Matrices/matrix_2000.csv");
+	Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_200.csv");
+	Matrix matrix = duplicate_matrix(original);
 	printf("Matrix loaded\n");
 	// print_matrix(matrix);
 	printf("Decomposing matrix\n");
-	clock_t begin = clock();
-	LU result = decompose_omp(matrix);
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
+	struct timeval tv;
+	gettimeofday(&tv,NULL);
+  	double start=tv.tv_sec;
+	LU result = decompose_mpi(matrix);
+	gettimeofday(&tv,NULL);
+    double end=tv.tv_sec;
+	double time_spent = (double)(end - start);
 	printf("Matrix decomposed - Elapsed %f\n", time_spent);
 
 	// printf("Lower\n");
@@ -30,7 +37,7 @@ int main(int argc, char *argv[]){
 	// print_matrix(recomposed);
 
 	printf("Computing error\n");
-	double error = compute_error(matrix, recomposed);
+	double error = compute_error(original, recomposed);
 	printf("error %f\n", error);
 	free(matrix.matrix);
 

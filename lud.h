@@ -3,24 +3,21 @@
 
 #include "ludutils.h"
 
-LU decompose_serial(Matrix mat){
-    int n = mat.n;
-    float **matrix = mat.matrix;
-
-    Matrix ma = duplicate_matrix(mat);
-    float **a = ma.matrix;
+LU decompose_serial(Matrix matrix){
+    int n = matrix.n;
+    float **A = matrix.matrix;
 
     for (int i = 0; i < n; i++) {
-        for(int j = i+1; j < n; j++){
-            float m = a[j][i] / a[i][i];
+        for(int j = i + 1; j < n; j++){
+            float m = A[j][i] / A[i][i];
             for(int k = i+1; k < n; k++){
-                a[j][k] -= m* a[i][k];
+                A[j][k] -= m* A[i][k];
             }
-            a[j][i] = m;
+            A[j][i] = m;
         }
     }
 
-    LU decomposition = split_lu(a, n);
+    LU decomposition = split_lu(A, n);
 
     return decomposition;
 }
