@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]){
 	printf("Loading matrix\n");
-	Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_200.csv");
+	Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_9000.csv");
 	Matrix matrix = duplicate_matrix(original);
 	printf("Matrix loaded\n");
 	// print_matrix(matrix);

@@ -62,29 +62,6 @@ LU split_lu(float **a, int n){
     return decomposition;
 }
 
-/**
- * Class that implements an invalid file path exception
-*/
-class not_valid_path : public std::runtime_error {
-public:
-	/**
-     * Secondary constructor, takes a message
-     * @param msg Message of error
-	*/
-	not_valid_path(const char *msg) :std::runtime_error(msg) {}
-};
-
-/**
- * Class that implements an invalid file
-*/
-class not_valid_file : public std::runtime_error {
-public:
-	/**
-     * Secondary constructor, takes a message
-     * @param msg Message of error
-	*/
-	not_valid_file(const char *msg) :std::runtime_error(msg) {}
-};
 
 char* concat(const char *s1, const char *s2)
 {
@@ -136,7 +113,7 @@ Matrix read_csv(char* path){
     FILE *fp;
     fp = fopen (path, "r");
     if (!fp) {
-        throw not_valid_path(concat("Unable to find file:", path));
+       printf("Unable to find file: %s", path);
     }
 
     int idx = 0;
@@ -162,13 +139,13 @@ Matrix read_csv(char* path){
             token = strtok(NULL, ",");
         }
         if (j != n) {
-                throw not_valid_file("Invalid informations in file.\nThe number of matrix cols is not equal to the cols defined in file.");
+                printf("Invalid informations in file.\nThe number of matrix cols is not equal to the cols defined in file.");
         }
         idx++;
     }
     
     if (idx != n) {
-            throw not_valid_file("Invalid informations in file.\nThe number of matrix rows is not equal to the rows defined in file.");
+           printf("Invalid informations in file.\nThe number of matrix rows is not equal to the rows defined in file.");
     }
 
 
