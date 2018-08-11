@@ -21,11 +21,17 @@ LU decompose_mpi(Matrix matrix){
 
 	int process_row_min =pid * nrows;
 	int process_row_max = process_row_min + nrows - 1;
+    
+    if(pid==nprocs-1 && (n - (process_row_max + 1)) > 0){
+        process_row_max = n-1;
+    }
 
     printf("Process %d\n", rank);
 
-    for (int i = 0; i < n; i++) { // Iterates over the columns to remove
 
+    double submatrix[n];
+    for (int i = 0; i < n; i++) { // Iterates over the columns to remove
+        if (thre)
         for(int j = i + 1; j < n; j++){ // Iterates over the remaining rows
             float m = A[j][i] / A[i][i];
             for(int k = i+1; k < n; k++){ // iterates over the remaining columns
