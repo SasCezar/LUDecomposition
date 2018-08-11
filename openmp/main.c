@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 		printf("Loading matrix\n");
-		Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_6000.csv");
+		Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_200.csv");
 		Matrix matrix = duplicate_matrix(original);
 		printf("Matrix loaded\n");
 		// print_matrix(matrix);
