@@ -6,22 +6,6 @@
 #include <string.h>
 #include <math.h>
 
-float **initalize_matrix(int rows, int cols) {
-    float **matrix = (float **)malloc(rows * sizeof(float *)); ;
-
-    for(int i = 0; i < rows; i++)
-    {
-        matrix[i] = (float *)malloc(cols * sizeof(float));
-        for(int j = 0; j < cols; j++)
-        {
-            matrix[i][j] = 0;
-        }
-    }
-
-    return matrix;
-}
-
-
 typedef struct{
     float **matrix;
     int n;
@@ -32,35 +16,6 @@ typedef struct{
     Matrix U;
 } LU;
 
-LU split_lu(float **a, int n){
-    float **L = initalize_matrix(n, n);
-    float **U = initalize_matrix(n, n);
-
-    int i, j;
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-        {
-            if (i < j)
-            {
-                U[i][j] = a[i][j];
-            }
-            if (i > j){
-                L[i][j] = a[i][j];
-            }
-            if (i == j){
-                L[i][j] = 1;
-                U[i][j] = a[i][j];
-            }
-        }
-    }
-
-
-    Matrix mL = { .matrix = L, .n = n};
-    Matrix mU = { .matrix = U, .n = n};
-    LU decomposition = { .L = mL, .U = mU};
-    return decomposition;
-}
 
 
 char* concat(const char *s1, const char *s2)
@@ -101,6 +56,63 @@ void partialPivot(int n, double** a, double* b, int j){
     }
 }
 
+
+float **matrix_create(size_t m, size_t n) {
+    size_t i; 
+    size_t size = sizeof(float);
+    void **p = (void **) malloc(m * n * size + m * sizeof(void *));
+    char *c =  (char*) (p + m);
+    for(i = 0; i < m; ++i)
+        p[i]= (void *) c + i * n * size;
+    return (float**)p;
+}
+
+float **initialize_matrix(int rows, int cols) {
+
+    float **matrix = matrix_create(rows,cols);
+
+    for(int i = 0; i < rows; i++)
+    {
+        for(int j = 0; j < cols; j++)
+        {
+            matrix[i][j] = 0;
+        }
+    }
+    return matrix;
+}
+
+
+LU split_lu(float **a, int n){
+    float **L = initialize_matrix(n, n);
+    float **U = initialize_matrix(n, n);
+
+
+    int i, j;
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            if (i < j)
+            {
+                U[i][j] = a[i][j];
+            }
+            if (i > j){
+                L[i][j] = a[i][j];
+            }
+            if (i == j){
+                L[i][j] = 1;
+                U[i][j] = a[i][j];
+            }
+        }
+    }
+
+
+    Matrix mL = { .matrix = L, .n = n};
+    Matrix mU = { .matrix = U, .n = n};
+    LU decomposition = { .L = mL, .U = mU};
+    return decomposition;
+}
+
 Matrix read_csv(char* path){
     /**
      * Reads a csv files and creates a matrix
@@ -124,11 +136,9 @@ Matrix read_csv(char* path){
 
     getline (&buffer, &len, fp);
     int n = atoi(buffer);
-    float **matrix = (float **)malloc(n * sizeof(float *)); ;
+    float **matrix = matrix_create(n, n);
     float cell;
     while ((read = getline (&buffer, &len, fp)) != -1) {
-        matrix[idx] = (float *)malloc(n * sizeof(float));
-
         char *token = strtok(buffer, ","); // Split the row using the ';' char
         int j = 0;
         while (token != NULL) // Iterate over the tokens extracted by strtok function
@@ -180,7 +190,7 @@ Matrix matrix_multiplication(Matrix a,Matrix b){
     int n = a.n;
     float **ma = a.matrix;
     float **mb = b.matrix;
-    float **mc = initalize_matrix(n, n);
+    float **mc = initialize_matrix(n, n);
 
 
     float sum = 0;
@@ -203,7 +213,7 @@ Matrix matrix_difference(Matrix a, Matrix b){
     int n = a.n;
     float **ma = a.matrix;
     float **mb = b.matrix;
-    float **mc = initalize_matrix(n, n);
+    float **mc = initialize_matrix(n, n);
 
 
     float sum = 0;
@@ -244,12 +254,11 @@ double compute_error(Matrix a, Matrix b){
 Matrix duplicate_matrix(Matrix mat){
     int n = mat.n;
 
-    float **matrix = (float **)malloc(n * sizeof(float *)); ;
+    float **matrix = matrix_create(n,n);
 
     float sum = 0;
     for(int i = 0; i < n; i++)
     {
-        matrix[i] = (float *)malloc(n * sizeof(float));
         for(int j = 0; j < n; j++)
         {
             matrix[i][j] = mat.matrix[i][j];      
