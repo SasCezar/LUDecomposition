@@ -102,7 +102,6 @@ int main(int argc, char *argv[])
 		printf("Recomposing original matrix\n");
 		Matrix recomposed = matrix_multiplication(result.L, result.U);
 		printf("Matrix recomposed\n");
-		//Matrix recomposed = {.matrix = A, .n=n};
 		printf("Computing error\n");
 		double error = compute_error(original, recomposed);
 		printf("error %f\n", error);
