@@ -1,12 +1,8 @@
-// #include <iostream>
 #include <time.h>
-#include<sys/time.h>
-// #include "lud_omp.h"
-// #include "lud.h"
-// #include "lud_mpi.h"
+#include <sys/time.h>
 #include "mpi.h"
 #include "../ludutils.h"
-//#include "ludcrout.h"
+
 
 int main(int argc, char *argv[])
 {
