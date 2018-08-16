@@ -3,98 +3,71 @@
 #include "mpi.h"
 #include "../ludutils.h"
 
+/*
+ * forw_elim - forward Gauss elimination
+ *
+ * @origin row pointer by reference
+ * @master_row row in which lays diagonal
+ */
+void forw_elim(float **origin, float *master_row, size_t dim)
+{
+   if (**origin == 0)
+      return;
+
+   float k = **origin / master_row[0];
+
+   int i;
+   for (i = 1; i < dim; i++) {
+      (*origin)[i] = (*origin)[i] - k * master_row[i];
+   }
+   **origin = k;
+}
+
 
 int main(int argc, char *argv[])
 {
-    int rank, nprocs;     // for storing this process' rank, and the number of processes
+	const int root_p = 0;
+    int n = 0, p, id;
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    n = atol(argv[1]);
+    char path[255];
+	int out = snprintf(path, 255, "/mnt/c/Users/sasce/Desktop/Matrices/matrix_%i.csv", n);
+	printf("Loading matrix\n");
+	Matrix original = read_csv(path);
+    Matrix matrix = duplicate_matrix(original);
+	float **A = matrix.matrix;
+	printf("Matrix loaded\n");
+	printf("Decomposing matrix\n");
 
-	double start, end;
-    Matrix original, matrix; 
-	float **A;
-	int n = atoi(argv[1]);  
-    
-	if(rank == 0){
-        char path[255];
-		int out = snprintf(path, 255, "/mnt/c/Users/sasce/Desktop/Matrices/matrix_%i.csv", n);
-		printf("Loading matrix\n");
-		original = read_csv(path);
-        matrix = duplicate_matrix(original);
-		A = matrix.matrix;
-		printf("Matrix loaded\n");
-		printf("Decomposing matrix\n");
-		start = MPI_Wtime();
-    }else{
-        A = matrix_create(n, n);
-    }
+    MPI_Init(NULL, NULL);
+    MPI_Comm_size(MPI_COMM_WORLD, &p);
+    MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    struct timeval tv;
+    double start, end;
+	gettimeofday(&tv,NULL);
+	start = tv.tv_sec;
 
-    int rem = n % nprocs;       // Elements remaining after division among processes
-    int sum = 0;                // Sum of counts. Used to calculate displacements
-    
-    int *sendcounts = malloc(sizeof(int)*nprocs); // Array describing how many elements to send to each process
-    int *displs = malloc(sizeof(int)*nprocs); // Array describing the displacements where each segment begins
-
-    // Calculate send counts and displacements
-    for (int i = 0; i < nprocs; i++) {
-        sendcounts[i] = n / nprocs;
-
-        if (rem > 0) {
-            sendcounts[i]++;
-            rem--;
-        }
-        sendcounts[i] *= n;
-
-        displs[i] = sum;
-        sum += sendcounts[i];
-    }
-
-	int rows = sendcounts[rank] / n;
-	float  **rec_buf = matrix_create(rows, n);
-
-    // Print calculated send counts and displacements for each process
-    if (0 == rank) {
-        for (int i = 0; i < nprocs; i++) {
-            printf("sendcounts[%d] = %d\tdispls[%d] = %d\n", i, sendcounts[i], i, displs[i]);
-        }
-    }
-
-    // Divide the data among processes as described by sendcounts and displs
-    
-    MPI_Scatterv(&A[0][0], sendcounts, displs, MPI_FLOAT, &rec_buf[0][0], sendcounts[rank], MPI_FLOAT, 0, MPI_COMM_WORLD);
-    
-	int mystart = displs[rank] / n;
-    int myend = mystart + rows - 1;
-	
-	if(rank == 0){
-        printf("rank, i\tj\tk\n");
-    }
-	MPI_Barrier(MPI_COMM_WORLD);
-	
-	printf("Rank %i: start %i - end %i", rank, mystart, myend);
-	for (int i = mystart; i < myend; i++) { // Iterates over the columns to remove
-        for(int j = i + 1; j < rows; j++){ // Iterates over the remaining rows
-            float m = rec_buf[j][i] / rec_buf[i][i];
-            for(int k = i+1; k < rows; k++){ // Iterates over the remaining columns
-                printf("%i\t%i\t%i\t%i\n",rank, i, j, k);
-				rec_buf[j][k] -= m * rec_buf[i][k];
+  
+    for (int i = 0; i < n - 1; i++) {
+        float *diag_row = &A[i][i];
+        for (int j = i + 1; j < n; j++) {
+            if (j % p == id) {
+                float *save = &A[j][i];
+                forw_elim(&save, diag_row, n - i);
             }
-            rec_buf[j][i] = m;
+        }
+
+        for (int j = i + 1; j < n; j++) {
+            float *save = &A[j][i];
+            MPI_Bcast(save, n - i, MPI_FLOAT, j % p, MPI_COMM_WORLD);
         }
     }
-	
-	printf("RANK END %i\n", rank);
-	
-    MPI_Gatherv(&rec_buf[0][0], sendcounts[rank], MPI_FLOAT, &A[0][0], sendcounts, displs, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-	printf("Gathered\n");
+	if(id == 0){
+		gettimeofday(&tv,NULL);
+    	end=tv.tv_sec;
 
-	if(rank == 0){
-		end = MPI_Wtime();
 		double time_spent = (double)(end - start);
 		printf("Matrix decomposed - Elapsed %f\n", time_spent);
 
@@ -109,5 +82,5 @@ int main(int argc, char *argv[])
 
 	MPI_Finalize();
 
-	return 0;
+	return EXIT_SUCCESS;
 }
