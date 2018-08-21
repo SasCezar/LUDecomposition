@@ -49,19 +49,31 @@ int main(int argc, char *argv[])
 	start = tv.tv_sec;
 
   
-    for (int i = 0; i < n - 1; i++) {
-        float *diag_row = &A[i][i];
-        for (int j = i + 1; j < n; j++) {
-            if (j % p == id) {
-                float *save = &A[j][i];
-                forw_elim(&save, diag_row, n - i);
-            }
-        }
+	int *map = malloc(size * (sizeof *map));
 
-        for (int j = i + 1; j < n; j++) {
-            float *save = &A[j][i];
-            MPI_Bcast(save, n - i, MPI_FLOAT, j % p, MPI_COMM_WORLD);
+	for(i=0; i<size; i++)
+	{
+		map[i]= i % nprocs;
+	}
+
+	for(j =0; j < size-1; j++) {
+        if(map[j] == rank)
+        {
+        	for(i = j+1; i < size; i++) {
+        		A[i][j] = A[i][j]/A[j][j];
+        	}
         }
+        MPI_Bcast (&A[j][j],size-j,MPI_DOUBLE,map[j],MPI_COMM_WORLD);
+
+        		for(k = j+1; k < size; k++)
+        		{
+        			if(map[j] == rank)
+        			{
+        				for(i = j+1; i < size; i++) {
+        					A[k][i]= A[k][i] - (A[k][j] * A[j][i]);
+       				    }
+       			}
+       		}
     }
 
 	if(id == 0){

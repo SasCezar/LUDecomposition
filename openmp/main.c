@@ -1,15 +1,17 @@
 #include <time.h>
 #include<sys/time.h>
-#include "lud_mpi.h"
-#include "ludutils.h"
+#include "lud_omp.h"
+#include "../ludutils.h"
 
 
 int main(int argc, char *argv[]){
 	int rank, nprocs;
     int i=0, j=0, k=0;
-
-	printf("Loading matrix\n");
-	Matrix original = read_csv("/mnt/c/Users/sasce/Desktop/Matrices/matrix_200.csv");
+	
+	int size = atoi(argv[1]); 
+	char path[255];
+	int out = snprintf(path, 255, "/mnt/c/Users/sasce/Desktop/Matrices/matrix_%i.csv", size);
+	Matrix original = read_csv(path);
 	Matrix matrix = duplicate_matrix(original);
 	printf("Matrix loaded\n");
 	printf("Decomposing matrix\n");
@@ -17,7 +19,7 @@ int main(int argc, char *argv[]){
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	double start=tv.tv_sec;
-	LU result = decompose_mpi(matrix);
+	LU result = decompose_omp(matrix);
 	gettimeofday(&tv,NULL);
 	double end=tv.tv_sec;
 	double time_spent = (double)(end - start);

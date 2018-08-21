@@ -9,13 +9,13 @@ LU decompose_serial(Matrix matrix){
 
     printf("i\tj\tk\n");
     for (int i = 0; i < n; i++) { // Iterates over the columns to remove
+        for(int j = i + 1; j < n; j++){
+            A[j][i] = A[j][i] / A[i][i]; // Computes the multipliers and updates L in A
+        }
         for(int j = i + 1; j < n; j++){ // Iterates over the remaining rows
-            float m = A[j][i] / A[i][i];
             for(int k = i+1; k < n; k++){ // iterates over the remaining columns
-                printf("%i\t%i\t%i\n", i, j, k);
-                A[j][k] -= m* A[i][k];
+                A[j][k] -= A[j][i] * A[i][k]; // Updates U in A
             }
-            A[j][i] = m;
         }
     }
 
