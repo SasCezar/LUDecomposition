@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	
 	for(int k = 0; k < n - 1 ; k++) {
 		
-		MPI_Bcast(&A[k * n + k], n - k, MPI_FLOAT, rank, MPI_COMM_WORLD);
+		MPI_Bcast(&A[k * n + k], n - k, MPI_FLOAT, map[k], MPI_COMM_WORLD);
 		
 		for(int i = k + 1; i < n; i++) {
 			if(map[i] == rank){
