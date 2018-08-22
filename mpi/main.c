@@ -57,15 +57,19 @@ int main(int argc, char *argv[])
 		map[i] = i % nprocs;
 	}
 	
-	for(int k = 0; k < n - 1 ; k++) {
+	for(int k = 0; k < n; k++) {
 		
 		MPI_Bcast(&A[k * n + k], n - k, MPI_FLOAT, map[k], MPI_COMM_WORLD);
 		
 		for(int i = k + 1; i < n; i++) {
 			if(map[i] == rank){
 				l[i * n + k] = A[i * n + k] / A[k * n + k];
-			}	
+				//printf("Rank %i - L[%i][%i]=%f\n", rank, i, k, l[i*n+k]);
+			}
 		}
+
+		MPI_Bcast(&l[k * n], k, MPI_FLOAT, map[k], MPI_COMM_WORLD);
+	
         for(int j = k + 1; j < n; j++){
 			for(int i = k + 1; i < n; i++) {
 				if(map[i] == rank){
@@ -73,6 +77,7 @@ int main(int argc, char *argv[])
 				}
 			}
        	}
+		
     }
 	
 	if(rank == 0){
@@ -87,9 +92,9 @@ int main(int argc, char *argv[])
 		LU result = split_lu(r, n);
 		printf("Recomposing original matrix\n");
 
-		print_matrix(L);
-		printf("\n\n\n");
-		print_matrix(result.U);
+		// print_matrix(L);
+		// printf("\n\n\n");
+		// print_matrix(result.U);
 
 		Matrix recomposed = matrix_multiplication(L, result.U);
 		printf("Matrix recomposed\n");
