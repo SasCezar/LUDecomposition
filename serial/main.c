@@ -27,6 +27,10 @@ int main(int argc, char *argv[]){
 	Matrix recomposed = matrix_multiplication(result.L, result.U);
 	printf("Matrix recomposed\n");
 	
+		print_matrix(result.L);
+		printf("\n\n\n");
+		print_matrix(result.U);
+
 	printf("Computing error\n");
 	double error = compute_error(original, recomposed);
 	printf("error %f\n", error);

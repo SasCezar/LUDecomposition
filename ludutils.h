@@ -63,7 +63,7 @@ float **matrix_create(size_t m, size_t n) {
     void **p = (void **) malloc(m * n * size + m * sizeof(void *));
     char *c =  (char*) (p + m);
     for(i = 0; i < m; ++i)
-        p[i]= (void *) c + i * n * size;
+        p[i] = (void *) c + i * n * size;
     return (float**)p;
 }
 
@@ -78,6 +78,15 @@ float **initialize_matrix(int rows, int cols) {
             matrix[i][j] = 0;
         }
     }
+    return matrix;
+}
+
+float **identity(int size){
+    float **matrix = initialize_matrix(size,size);
+    for(int i = 0; i < size; i++){
+        matrix[i][i] = 1;
+    }
+
     return matrix;
 }
 

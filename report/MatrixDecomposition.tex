@@ -15,7 +15,7 @@ shown in algorithm~\ref{alg:gaussian_elimination}, where U and L overwrites A:
 	\EndFor
 	\For{$j \in  \{i+1 \dots n\}$}
 		\For{$k \in  \{i+1 \dots n\}$}
-			\State $A[j][k] = A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
+			\State $A[j][k] = A[j][k] - A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
 		\EndFor	
 	\EndFor
 \EndFor
@@ -52,7 +52,7 @@ The implementation of the LU decmposition using OpenMP (OMP) is very similar to 
 	\State \#pragma omp parallel for shared(A,n,i)
 	\For{$j \in  \{i+1 \dots n\}$}
 		\For{$k \in  \{i+1 \dots n\}$}
-			\State $A[j][k] = A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
+			\State $A[j][k] = A[j][k] - A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
 		\EndFor	
 	\EndFor
 \EndFor
@@ -73,4 +73,26 @@ This compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tell
 
 
 \section{MPI}
+
+Message-Passing Interface (MPI) is a specification standard for point-to-point message-passing, collective communications, group and communicator concepts. MPI addresses primarily the message-passing parallel programming model, in which data is moved from the address space of one process to that of another process through cooperative operations on each process. The implementation was performed using the OpenMPI library.
+
+\begin{algorithm}
+\begin{algorithmic}
+\For{$i \in  \{1 \dots n - 1\}$}
+	\State broadcast\{$A[i][j] : i \leq j \leq n $\}
+	\For{$j \in myrows, i > k $}
+		\State $L[j][i] = A[j][i] / A[i][i]$ \Comment{Compute L}
+	\EndFor
+	\For{$j \in \{k + 1 \dots n\}$}
+		\For{$k \in myrows, k > i $}
+			\State $A[j][k] = A[j][k] - L[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
+		\EndFor	
+	\EndFor
+\EndFor
+\end{algorithmic}
+\caption{Gaussian elimination using OpenMPI}
+\label{alg:mpi_code}
+\end{algorithm}
+
+
 \section{CUDA}
