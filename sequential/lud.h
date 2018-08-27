@@ -3,11 +3,10 @@
 
 #include "../ludutils.h"
 
-LU decompose_serial(Matrix matrix){
+LU decompose_sequential(Matrix matrix){
     int n = matrix.n;
     float **A = matrix.matrix;
 
-    printf("i\tj\tk\n");
     for (int i = 0; i < n; i++) { // Iterates over the columns to remove
         for(int j = i + 1; j < n; j++){
             A[j][i] = A[j][i] / A[i][i]; // Computes the multipliers and updates L in A

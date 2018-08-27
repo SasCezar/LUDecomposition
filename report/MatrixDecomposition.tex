@@ -28,8 +28,8 @@ The algorithm therefore prescribes that the data dependency flows from left to r
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{LU_iteration.png}
-\caption{$i$-th iteration of Gaussian elimination}
+\includegraphics[width=0.5\textwidth]{submatrix_i.png}
+\caption{Submatrix updating at $i$-th iteration of Gaussian elimination}
 \end{figure}
 
 
@@ -40,7 +40,7 @@ during the LU factorization of a matrix. This guarantees that the elimination pr
 \section{OpenMP}
 OpenMP is an Application Program Interface (API) that provides a portable, scalable model for developing shared memory parallel applications.
 
-The implementation of the LU decmposition using OpenMP (OMP) is very similar to the sequential one, the only difference consists in the OMP directives that allows the code to become parallel.
+The implementation of the LU decomposition using OpenMP (OMP) is very similar to the sequential one, the only difference consists in the OMP directives that allows the code to become parallel.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -57,32 +57,34 @@ The implementation of the LU decmposition using OpenMP (OMP) is very similar to 
 	\EndFor
 \EndFor
 \end{algorithmic}
-\caption{Gaussian elimination}
+\caption{Gaussian elimination in OpenMP}
 \label{alg:omp_code}
 \end{algorithm}
 
-This compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final submatrix elements will be computed by different threads (Note - the for loop is parallel on $j$ but not on $k$, even if the element is computed by a different thread), depending on the scheduling. In Figure~\ref{img:omp_computation_division}
+This compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final submatrix elements will be computed by different threads depending on the scheduling. In Figure~\ref{img:omp_workload}  we can notice how the rows are computed by the threads.
 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{LU_iteration.png}
+\includegraphics[width=0.5\textwidth]{openmp_i.png}
 \caption{Workload division using OpenMP}
+\label{img:omp_workload}
 \end{figure}
 
 
 
 \section{MPI}
 
-Message-Passing Interface (MPI) is a specification standard for point-to-point message-passing, collective communications, group and communicator concepts. MPI addresses primarily the message-passing parallel programming model, in which data is moved from the address space of one process to that of another process through cooperative operations on each process. The implementation was performed using the OpenMPI library.
+Message-Passing Interface (MPI) is a specification standard for point-to-point message-passing, collective communications, group and communicator concepts. MPI addresses primarily the message-passing parallel programming model, in which data is moved from the address space of one process to that of another process through cooperative operations on each process. So when we run an MPI application it has multiple processes that can be on different machines, and the work is coordinated by messages that the processes exchange between each other. The implementation was performed using the OpenMPI library.
 
-\begin{algorithm}
+\begin{algorithm}[H]
 \begin{algorithmic}
-\For{$i \in  \{1 \dots n - 1\}$}
-	\State broadcast\{$A[i][j] : i \leq j \leq n $\}
+\For{$i \in  \{1 \dots n \}$}
+	\State \textbf{broadcast}\{$A[i][j] : i \leq j \leq n $\}
 	\For{$j \in myrows, i > k $}
 		\State $L[j][i] = A[j][i] / A[i][i]$ \Comment{Compute L}
 	\EndFor
+	\State \textbf{send} $L[i]$ \textbf{to} $root$ \Comment{Send multipliers row to root process}
 	\For{$j \in \{k + 1 \dots n\}$}
 		\For{$k \in myrows, k > i $}
 			\State $A[j][k] = A[j][k] - L[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
@@ -94,5 +96,68 @@ Message-Passing Interface (MPI) is a specification standard for point-to-point m
 \label{alg:mpi_code}
 \end{algorithm}
 
+In this solution, we split the workload on the different processes by assigning to each process a set of rows called $myrows$. In my case the division was assigned using the modulo operation, if $row \% nprocs == rank$ then $row \in myrows$. 
+The decomposition is performed in parallel for row each processes. In Figure~\ref{img:mpi_workload} we can see two process working in parallel on the rows they are assigned to compute, then the results is broadcast to the other processes. There is no row parallelism since any given matrix row is contained entirely in only one process. The multipliers are sent to the process 0 in order to have the lower diagonal matrix $L$.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{mpi_i.png}
+\caption{Workload division using MPI}
+\label{img:mpi_workload}
+\end{figure}
+
+
 
 \section{CUDA}
+CUDA is a parallel computing platform and API model created by Nvidia. CUDA  is designed to work with programming languages such as C, C++, and Fortran.  CUDA uses the computational power of GPUs and allows developers to exploit their parallel hardware. 
+
+According to CUDA, data-parallel portions of an application
+are implemented as kernels. The CPU, also called the host, can
+initiate kernels. Each kernel is executed in parallel by
+several threads. The programmer groups threads into blocks, which
+are logically aggregated into a grid. When a CUDA application is
+executed, threads are scheduled in groups of warps. A warp executes
+one common instruction at a time.
+
+\paragraph{}
+The CUDA implementation is similar to the OpenMP code. In fact, as for OpenMP, we have multiple threads working on the same matrix. The difference consists in the number of threads, CUDA will have many more workers.
+
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+\Procedure{decompose\_multipliers}{$A, num\_rows, i$}
+	\For{$j \in  \{i+1 \dots n\}$}
+		\State $A[j][i] = A[j][i] / A[i][i]$ \Comment{Compute L and store in A}
+	\EndFor
+\EndProcedure
+\\
+\Procedure{decompose\_elimination}{$A, num\_rows, i$}
+	\For{$j \in  \{i+1 \dots n\}$}
+		\For{$k \in  \{i+1 \dots n\}$}
+			\State $A[j][k] = A[j][k] - A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
+		\EndFor	
+	\EndFor
+\EndProcedure
+
+\end{algorithmic}
+\caption{CUDA Kernels for LU decomposition}
+\label{alg:cuda_kernels}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\begin{algorithmic}
+	\State block\_threads(threads, 1, 1)
+	\State grid(blocks, 1)
+	\State $num\_rows = ceil(size / (threads * blocks))$ 
+\For{$i \in  \{1 \dots n \}$}
+	\State decompose\_multipliers  \guilsinglleft \guilsinglleft \guilsinglleft \textit{grid}, \textit{block\_threads}\guilsinglright \guilsinglright \guilsinglright ($A, num\_rows, i$)
+		\State decompose\_elimination  \guilsinglleft \guilsinglleft \guilsinglleft \textit{grid}, \textit{block\_threads}\guilsinglright \guilsinglright \guilsinglright ($A, num\_rows, i$)
+\EndFor
+\end{algorithmic}
+\caption{Gaussian elimination using OpenMPI}
+\label{alg:cuda_code}
+\end{algorithm}
+
+
