@@ -122,13 +122,9 @@ LU split_lu(float **a, int n){
     return decomposition;
 }
 
-Matrix read_csv(char* path){
+Matrix read_csv(char* path, int n){
     /**
      * Reads a csv files and creates a matrix
-     * @param path Path to the csv files
-     * @param *matrix Pointer to the matrix 
-     * @throw not_valid_fie
-     * @throw not_valid_path
     */
 
     FILE *fp;
@@ -143,8 +139,6 @@ Matrix read_csv(char* path){
     size_t len = 0;
     ssize_t read;
 
-    getline (&buffer, &len, fp);
-    int n = atoi(buffer);
     float **matrix = matrix_create(n, n);
     float cell;
     while ((read = getline (&buffer, &len, fp)) != -1) {

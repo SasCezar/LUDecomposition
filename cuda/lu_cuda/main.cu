@@ -20,34 +20,7 @@ cudaError_t decomposeCuda(float *A, int size);
 float * read_csv(string path, int N) {
 	/**
 	 * Reads a csv files and creates a matrix
-	 * @param path Path to the csv files
-	 * @param *matrix Pointer to the matrix
-	 * @throw not_valid_fie
-	 * @throw not_valid_path
 	*/
-
-	//using namespace std;
-
-	//ifstream in(path);
-
-	//string line, field;
-
-
-	//float *A = (float *)malloc(sizeof(float) * N * N);
-	//int j, i = 0;
-	//while (getline(in, line))    // get next line in file
-	//{
-	//	stringstream ss(line);
-	//	j = 0;
-	//	while (getline(ss, field, ','))  // break line into comma delimitted fields
-	//	{
-	//		A[i * N + j] = std::stof(field);
-	//		j++;
-	//	}
-	//	i++;
-	//}
-
-	// Convert the input to inline array of float
 
 	std::ifstream f(path);
 	CsvParser parser = CsvParser(f).delimiter(',');

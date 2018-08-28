@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 	printf("size;num_threads;elapsed\n");
 	for(int size = 1000; size <= 9000; size += 1000){
 		int out = snprintf(path, 255, "/mnt/c/Users/sasce/Desktop/Matrices/matrix_%i.csv", size);
-		Matrix original = read_csv(path);
+		Matrix original = read_csv(path, size);
 		for(int n = 2; n <= 8; n ++){
 			// for(int j = 0; j < 9; j++){
 			{

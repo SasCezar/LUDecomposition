@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 		int out = snprintf(path, 255, "/mnt/c/Users/sasce/Desktop/Matrices/matrix_%i.csv", n);
 		// printf("Loading matrix\n");
 		
-		Matrix original = read_csv(path);
+		Matrix original = read_csv(path, size);
 		// for(int t=0; t<10; t++){
 		{
 			Matrix matrix = duplicate_matrix(original);
