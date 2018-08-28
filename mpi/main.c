@@ -102,7 +102,8 @@ int main(int argc, char *argv[])
 				// printf("Computing error\n");
 				// double error = compute_error(original, recomposed);
 				// printf("error %f\n", error);
-			}	
+			}
+			free(matrix.matrix);	
 		}
 	}
 	MPI_Finalize();

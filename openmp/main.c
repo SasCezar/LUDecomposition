@@ -27,6 +27,7 @@ int main(int argc, char *argv[]){
 				double end=tv.tv_sec;
 				int time_spent = (int)(end - start);
 				printf("%i;%i;%i\n", size, n, time_spent);
+				free(matrix.matrix);
 				// printf("Matrix decomposed - Elapsed %f\n", time_spent);
 			}
 		}
