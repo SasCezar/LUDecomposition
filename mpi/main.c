@@ -103,8 +103,12 @@ int main(int argc, char *argv[])
 				// double error = compute_error(original, recomposed);
 				// printf("error %f\n", error);
 			}
-			free(matrix.matrix);	
+			free(matrix.matrix);
+			free(map);
+			free(l);
+			free(A);	
 		}
+		free(original.matrix);
 	}
 	MPI_Finalize();
 
