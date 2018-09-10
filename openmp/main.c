@@ -28,9 +28,12 @@ int main(int argc, char *argv[]){
 				int time_spent = (int)(end - start);
 				printf("%i;%i;%i\n", size, n, time_spent);
 				free(matrix.matrix);
+				free(result.L.matrix);
+				free(result.U.matrix);
 				// printf("Matrix decomposed - Elapsed %f\n", time_spent);
 			}
 		}
+		free(original.matrix)
 	}
 
 	// printf("Recomposing original matrix\n");
@@ -44,8 +47,5 @@ int main(int argc, char *argv[]){
 	// printf("Computing error\n");
 	// double error = compute_error(original, recomposed);
 	// printf("error %f\n", error);
-	
-	return 0;
-
 	return 0;
 }

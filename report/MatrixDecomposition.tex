@@ -34,7 +34,7 @@ The algorithm therefore prescribes that the data dependency flows from left to r
 
 
 This version doesn't perform pivoting. Pivoting for LU factorization is the process of systematically selecting pivots for Gaussian elimination
-during the LU factorization of a matrix. This guarantees that the elimination process goes to completion, ensuring that there is a nonzero pivot at every step of the elimination process. The pivoting is not necessary if the matrix is positive semi-definite. So our test matrices will have this property.
+during the LU factorization of a matrix. This guarantees that the elimination process goes to completion, ensuring that there is a nonzero pivot at every step of the elimination process. The pivoting is not necessary if the matrix is positive definite~\cite{upenn_lu_positive_definite}. So our test matrices will have this property.
 
 
 \section{OpenMP}
@@ -61,7 +61,7 @@ The implementation of the LU decomposition using OpenMP (OMP) is very similar to
 \label{alg:omp_code}
 \end{algorithm}
 
-This compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final submatrix elements will be computed by different threads depending on the scheduling. In Figure~\ref{img:omp_workload}  we can notice how the rows are computed by the threads.
+The compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final sub-matrix elements will be computed by different threads depending on the scheduling. In Figure~\ref{img:omp_workload}  we can notice how the rows are computed by the threads.
 
 
 \begin{figure}[H]
@@ -96,7 +96,7 @@ Message-Passing Interface (MPI) is a specification standard for point-to-point m
 \label{alg:mpi_code}
 \end{algorithm}
 
-In this solution, we split the workload on the different processes by assigning to each process a set of rows called $myrows$. In my case the division was assigned using the modulo operation, if $row \% nprocs == rank$ then $row \in myrows$. 
+In this solution (based on~\cite{Health2015}, we split the workload on the different processes by assigning to each process a set of rows called $myrows$. In my case the division was assigned using the modulo operation, if $row \% nprocs == rank$ then $row \in myrows$. 
 The decomposition is performed in parallel for row each processes. In Figure~\ref{img:mpi_workload} we can see two process working in parallel on the rows they are assigned to compute, then the results is broadcast to the other processes. There is no row parallelism since any given matrix row is contained entirely in only one process. The multipliers are sent to the process 0 in order to have the lower diagonal matrix $L$.
 
 
