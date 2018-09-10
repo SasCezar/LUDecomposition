@@ -3,7 +3,7 @@
 In this chapter I will present the performance in terms of computation time for each implementation. The measures are only for the time required to perform the decomposition. The test ware performed using different matrices, as i will describe in section~\ref{Dataset}. The machine used has an \textit{Intel Core i7-6700k} CPU clocked at \textit{4.6GHz}, \textit{32GB} of RAM, and for the GPU an \textit{Nvidia GTX 670}.
 \section{Dataset}
 \label{Dataset}
-The matrices used for the test consist in square matrices of different sizes from 1000 to 9000 with a step of 1000. The matrices were generated using Python, and they are positive semi-definite. The matrix creation process consists in generating a random matrix, and for obtaining a positive semi-definite matrix, we multiply the matrix for its transpose, formally $A = K \times K^{T}$, where $K \in R^{n \times n}$ is a random matrix. 
+The matrices used for the test consist in square matrices of different sizes from 1000 to 9000 with a step of 1000. The matrices were generated using Python, and they are positive definite. The matrix creation process consists in generating a random matrix, and for obtaining a positive definite matrix, we multiply the matrix for its transpose, formally $A = K \times K^{T}$, where $K \in R^{n \times n}$ is a random matrix. 
 
 \section{Sequential}
 \section{OpenMP}
