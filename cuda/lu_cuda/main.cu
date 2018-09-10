@@ -14,7 +14,7 @@ using namespace std;
 using namespace aria::csv;
 
 
-cudaError_t decomposeCuda(float *A, int size);
+cudaError_t decomposeCuda(float *A, int size, int threads_per_block, int num_blocks);
 
 
 float * read_csv(string path, int N) {
@@ -218,7 +218,8 @@ float **matrix2d(float *A, int n) {
 
 int main(int argc, char const *argv[])
 {
-	int size = 2000;
+	int size = atoi(argv[1]);
+	//int size = 2000;
 	char path[255];
 	int out = snprintf(path, 255, "C:\\Users\\sasce\\Desktop\\Matrices\\matrix_%i.csv", size);
 
@@ -227,12 +228,16 @@ int main(int argc, char const *argv[])
 
 	struct cudaDeviceProp properties;
 	cudaGetDeviceProperties(&properties, 0);
-	cout << "using " << properties.multiProcessorCount << " multiprocessors" << endl;
-	cout << "max threads per processor: " << properties.maxThreadsPerMultiProcessor << endl;
+	// cout << "using " << properties.multiProcessorCount << " multiprocessors" << endl;
+	// cout << "max threads per processor: " << properties.maxThreadsPerMultiProcessor << endl;
 
-	// Add vectors in parallel.
+	// Decomplse matrix in parallel.
+	int threads_per_block = atoi(argv[2]);
+	int num_blocks = atoi(argv[3]);
+	// int threads_per_block = 512;
+	// int num_blocks = 2;
 	auto start = std::chrono::high_resolution_clock::now();
-	cudaError_t cudaStatus = decomposeCuda(A, size);
+	cudaError_t cudaStatus = decomposeCuda(A, size, threads_per_block, num_blocks);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "decomposeCuda failed!");
 		return 1;
@@ -241,7 +246,7 @@ int main(int argc, char const *argv[])
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = finish - start;
 
-	std::cout << "Elapsed time: " << elapsed.count() << "\n";
+	cout << size << ";" << num_blocks << ";" << threads_per_block << ";" << (int)elapsed.count() << "\n";
 
 	// cudaDeviceReset must be called before exiting in order for profiling and
 	// tracing tools such as Nsight and Visual Profiler to show complete traces.
@@ -252,17 +257,18 @@ int main(int argc, char const *argv[])
 	}
 
 
+	/*
 	float **result = matrix2d(A, size);
 	LU decomposition = split_lu(result, size);
 	float **recomposed = matrix_multiplication(decomposition.L, decomposition.U, size);
 	double error = compute_error(recomposed, original, size);
 	printf("Error %f", error);
-
+	*/
 	return 0;
 }
 
 // Helper function for using CUDA to decompose matrix in parallel.
-cudaError_t decomposeCuda(float *A, int size)
+cudaError_t decomposeCuda(float *A, int size, int threads_per_block, int num_blocks)
 {
 	float *dev_a;
 	cudaError_t cudaStatus;
@@ -298,13 +304,11 @@ cudaError_t decomposeCuda(float *A, int size)
 
 	// Launch a kernel on the GPU with one thread for each element.
 
-	int threads_per_block = 512;
-	int num_blocks = 4;
 	int ops_per_thread = ceil((size) / (float)(threads_per_block*num_blocks));
 
 	dim3 thread_block(threads_per_block, 1, 1);
 	dim3 grid(num_blocks, 1);
-	printf("Ops per thread %i \n", ops_per_thread);
+	// printf("Ops per thread %i \n", ops_per_thread);
 
 	for (int i = 0; i < size; i++) { // Iterates over the columns to remove
 		decompose_multipliers << <grid, thread_block >> > (dev_a, ops_per_thread, i);
