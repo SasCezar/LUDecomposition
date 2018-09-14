@@ -1,11 +1,11 @@
 \chapter{Matrix Decomposition}
 \label{matrix_decomposition}
-In this section I will present the algorithm, and different implementation for each framework.
+In this section I will present the LU decomposition algorithm, and the different implementations for each framework.
 \section{LU Decomposition}
 A non-singular matrix $A \in \mathbb{R}^{n \times n}$ is factorized into a product of lower and upper triangular matrices $L \in \mathbb{R}^{n \times n}$ and $U \in \mathbb{R}^{n \times n}$ respectively such that $A = LU$.
 
 LU factorization can be computed by Gaussian elimination as
-shown in algorithm~\ref{alg:gaussian_elimination}, where U and L overwrites A:
+shown in algorithm~\ref{alg:gaussian_elimination}, where U and L overwrite A:
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -34,13 +34,13 @@ The algorithm therefore prescribes that the data dependency flows from left to r
 
 
 This version doesn't perform pivoting. Pivoting for LU factorization is the process of systematically selecting pivots for Gaussian elimination
-during the LU factorization of a matrix. This guarantees that the elimination process goes to completion, ensuring that there is a nonzero pivot at every step of the elimination process. The pivoting is not necessary if the matrix is positive definite~\cite{upenn_lu_positive_definite}. So our test matrices will have this property.
+during the LU factorization of a matrix. This guarantees that the elimination process goes to completion, ensuring that there is a nonzero pivot at every step of the elimination process. The pivoting is not necessary if the matrix is positive definite~\cite{upenn_lu_positive_definite}. So the test matrices will built to have this property.
 
 
 \section{OpenMP}
 OpenMP is an Application Program Interface (API) that provides a portable, scalable model for developing shared memory parallel applications.
 
-The implementation of the LU decomposition using OpenMP (OMP) is very similar to the sequential one, the only difference consists in the OMP directives that allows the code to become parallel.
+The implementation of the LU decomposition using OpenMP (OMP) is very similar to the sequential one, the only difference consists in the OMP directives that allows the code to be parallelized by the compiler. The implementation is show in Algorithm~\ref{alg:omp_code}.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -61,7 +61,7 @@ The implementation of the LU decomposition using OpenMP (OMP) is very similar to
 \label{alg:omp_code}
 \end{algorithm}
 
-The compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final sub-matrix elements will be computed by different threads depending on the scheduling. In Figure~\ref{img:omp_workload}  we can notice how the rows are computed by the threads.
+The compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells the compiler to auto-parallelize the for loop with OpenMP. This directive splits each \textit{for} loop iteration to a different thread, so the final sub-matrix elements will be computed by different threads depending on the scheduling. In Figure~\ref{img:omp_workload}  we can notice how the rows are computed by the threads. 
 
 
 \begin{figure}[H]
@@ -71,7 +71,7 @@ The compiler directive ``\textit{\#pragma omp parallel for shared(A,n,i)}" tells
 \label{img:omp_workload}
 \end{figure}
 
-
+\pagebreak
 
 \section{MPI}
 
@@ -84,7 +84,7 @@ Message-Passing Interface (MPI) is a specification standard for point-to-point m
 	\For{$j \in myrows, i > k $}
 		\State $L[j][i] = A[j][i] / A[i][i]$ \Comment{Compute L}
 	\EndFor
-	\State \textbf{send} $L[i]$ \textbf{to} $root$ \Comment{Send multipliers row to root process}
+	\State \textbf{broadcast} \{$L[i]$\} \Comment{Send multipliers row to other processes}
 	\For{$j \in \{k + 1 \dots n\}$}
 		\For{$k \in myrows, k > i $}
 			\State $A[j][k] = A[j][k] - L[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
@@ -96,8 +96,8 @@ Message-Passing Interface (MPI) is a specification standard for point-to-point m
 \label{alg:mpi_code}
 \end{algorithm}
 
-In this solution (based on~\cite{Health2015}, we split the workload on the different processes by assigning to each process a set of rows called $myrows$. In my case the division was assigned using the modulo operation, if $row \% nprocs == rank$ then $row \in myrows$. 
-The decomposition is performed in parallel for row each processes. In Figure~\ref{img:mpi_workload} we can see two process working in parallel on the rows they are assigned to compute, then the results is broadcast to the other processes. There is no row parallelism since any given matrix row is contained entirely in only one process. The multipliers are sent to the process 0 in order to have the lower diagonal matrix $L$.
+In this solution, based on~\cite{Health2015}, we split the workload on the different processes by assigning each one a set of rows called $myrows$. This set is defined using the modulo operation, if $row \mod nprocs == rank$ then $row \in myrows$. 
+The decomposition is performed in parallel for row by each processes. In Figure~\ref{img:mpi_workload} we can see two process working in parallel on the rows they are assigned to compute, then the results is broadcasted to the other processes.
 
 
 \begin{figure}[H]
@@ -112,16 +112,9 @@ The decomposition is performed in parallel for row each processes. In Figure~\re
 \section{CUDA}
 CUDA is a parallel computing platform and API model created by Nvidia. CUDA  is designed to work with programming languages such as C, C++, and Fortran.  CUDA uses the computational power of GPUs and allows developers to exploit their parallel hardware. 
 
-According to CUDA, data-parallel portions of an application
-are implemented as kernels. The CPU, also called the host, can
-initiate kernels. Each kernel is executed in parallel by
-several threads. The programmer groups threads into blocks, which
-are logically aggregated into a grid. When a CUDA application is
-executed, threads are scheduled in groups of warps. A warp executes
-one common instruction at a time.
+According to CUDA, data-parallel portions of an application are implemented as kernels. The CPU, also called the host, can initiate kernels. Each kernel is executed in parallel by several threads. The programmer groups threads into blocks, which are logically aggregated into a grid. When a CUDA application is executed, threads are scheduled in groups of warps. A warp executes one common instruction at a time.
 
-\paragraph{}
-The CUDA implementation is similar to the OpenMP code. In fact, as for OpenMP, we have multiple threads working on the same matrix. The difference consists in the number of threads, CUDA will have many more workers.
+The CUDA work division is similar to the OpenMP code. In fact, as for OpenMP, we have multiple threads working on the same matrix. The difference consists in the number of threads, CUDA will have many more workers.
 
 
 \begin{algorithm}[H]
@@ -136,7 +129,7 @@ The CUDA implementation is similar to the OpenMP code. In fact, as for OpenMP, w
 	\For{$j \in  \{i+1 \dots n\}$}
 		\For{$k \in  \{i+1 \dots n\}$}
 			\State $A[j][k] = A[j][k] - A[j][i] \times A[i][k]$ \Comment{Compute U and store in A}
-		\EndFor	
+		\EndFor
 	\EndFor
 \EndProcedure
 
@@ -156,7 +149,7 @@ The CUDA implementation is similar to the OpenMP code. In fact, as for OpenMP, w
 		\State decompose\_elimination  \guilsinglleft \guilsinglleft \guilsinglleft \textit{grid}, \textit{block\_threads}\guilsinglright \guilsinglright \guilsinglright ($A, num\_rows, i$)
 \EndFor
 \end{algorithmic}
-\caption{Gaussian elimination using OpenMPI}
+\caption{Gaussian elimination using CUDA}
 \label{alg:cuda_code}
 \end{algorithm}
 

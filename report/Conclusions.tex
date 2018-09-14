@@ -1,2 +1,6 @@
 \chapter{Conclusions}
 \label{conclusions}
+\paragraph{}
+In conclusion, we can say that the best solution is the implementation using OpenMPI. For this task is the most simple to implement and also the fastest and most efficient. The MPI implementation is not suitable for such small and high communication demanding task. Regarding the CUDA solution, we obtained good results, but the lower performance of the CUDA cores and also the non optimal implementation penalized the final results.
+
+As for the future work, would be interesting to run MPI on different machines, also trying an hybrid solution of MPI on different machines with OpenMP computing the local sub-task. For CUDA, would be interesting to compare a shared memory implementation and a global memory one.

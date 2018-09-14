@@ -1,11 +1,197 @@
 \chapter{Results}
 \label{results_computations}
-In this chapter I will present the performance in terms of computation time for each implementation. The measures are only for the time required to perform the decomposition. The test ware performed using different matrices, as i will describe in section~\ref{Dataset}. The machine used has an \textit{Intel Core i7-6700k} CPU clocked at \textit{4.6GHz}, \textit{32GB} of RAM, and for the GPU an \textit{Nvidia GTX 670}.
+In this chapter I will present the performance in terms of computation time for each implementation. The measures are only for the time required to perform the decomposition. The test ware performed using different matrices, as i will describe in section~\ref{Dataset}. The machine used has an \textit{Intel Core i7-6700k} CPU clocked at \textit{4.6GHz}, \textit{32GB} of RAM, and the GPU is a \textit{Nvidia GTX 670}. The CPU specs are shown in Table~\ref{tab:cpu_spec}, while the GPU's one are in Table~\ref{tab:gpu_spec}
+
+
+\def \hfillx {\hspace*{-\textwidth} \hfill}
+\begin{table}[H]
+        \begin{minipage}{0.5\textwidth}
+            \centering
+\begin{tabular}{ll}
+\hline
+\multicolumn{2}{c}{General}                        \\ \hline
+\multicolumn{1}{l|}{\# of Cores}         & 4       \\ \hline
+\multicolumn{1}{l|}{\# of Threads}       & 8       \\ \hline
+\multicolumn{1}{l|}{Base Frequency}      & 4 GHz   \\ \hline
+\multicolumn{1}{l|}{OC Frequency}        & 4.5 GHz \\ \hline
+\multicolumn{1}{l|}{Cache}               & 8 MB    \\ \hline
+\multicolumn{2}{c}{Memory}                         \\ \hline
+\multicolumn{1}{l|}{Max Memory Size}     & 64 GB   \\ \hline
+\multicolumn{1}{l|}{Max Memory Bandwith} & 34 GBps
+\end{tabular}
+\caption{Intel Core i7 6700k Specs}
+\label{tab:cpu_spec}
+        \end{minipage}
+        \hfillx
+        \begin{minipage}{0.5\textwidth}
+            \centering
+\begin{tabular}{ll}
+\hline
+\multicolumn{2}{c}{General}                           \\ \hline
+\multicolumn{1}{l|}{Boost Clock}           & 1058 MHz \\ \hline
+\multicolumn{1}{l|}{CUDA Cores}            & 1536     \\ \hline
+\multicolumn{1}{l|}{Core Clock}            & 1006 MHz \\ \hline
+\multicolumn{2}{c}{Memory}                            \\ \hline
+\multicolumn{1}{l|}{Size}                  & 2 GB     \\ \hline
+\multicolumn{1}{l|}{Effective Clock Speed} & 6 GHz    \\ \hline
+\multicolumn{1}{l|}{Bandwidth}             & 192 GBps
+\end{tabular}
+\caption{Nvidia GTX 680 Specs}
+\label{tab:gpu_spec}
+        \end{minipage}
+    \end{table}
+
 \section{Dataset}
 \label{Dataset}
 The matrices used for the test consist in square matrices of different sizes from 1000 to 9000 with a step of 1000. The matrices were generated using Python, and they are positive definite. The matrix creation process consists in generating a random matrix, and for obtaining a positive definite matrix, we multiply the matrix for its transpose, formally $A = K \times K^{T}$, where $K \in R^{n \times n}$ is a random matrix. 
 
+For each matrix, and parameters combination, I performed 10 runs in order to obtain an average score, which is more representative and not subject to the delays caused by the operating system.
+
 \section{Sequential}
+The first version presented is the sequential one, we will use it as baseline for the other implementations. 
+
+In Figure~\ref{fig:res_sequential} we can see that the growth of the time is $O(n^3)$, as expected. The time required for the largest matrix is near 800 seconds.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{sequential_results.pdf}
+\caption{Avarage elapsed time for each matrix size using the sequential algorithm}
+\label{fig:res_sequential}
+\end{figure}
+
+
 \section{OpenMP}
+Now we will have a look at the OpenMP solution. OpenMP takes as parameter the number of threads, this parameter ranges between 2 and 8. In Figure~\ref{fig:res_omp} we can notice the execution times for the different input sizes, and for the different numbers of threads. We can notice a immediate increase with respect to the sequential implementation by using 2 threads. A significant reduction in execution can also be noticed when using 3 threads, and slightly reductions with the number of threads.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{omp_results.pdf}
+\caption{Avarage elapsed time for each matrix size using the OpenMP}
+\label{fig:res_omp}
+\end{figure}
+
+I also performed analysis for the speedup (ratio of the sequential time and the parallel time) and the efficiency (speedup over number of processors). In Figure~\ref {fig:speedup_omp}. The first thing we can notice is the blue line of the matrix of size 1000, this can be considerate as a particular case, probably due to the system architecture and the reduced size of the matrix. For the other inputs, we can notice similar speedups. The benefit of using a shared memory architecture for parallelism is evident, especially when using many threads.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{omp_speedup.pdf}
+\caption{Speedup for OpenMP}
+\label{fig:speedup_omp}
+\end{figure}
+
+The efficiency of using many threads is shown in Figure~\ref{fig:efficiency_omp}, as we notice there is a reduction when we increase the number of threads. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{omp_efficiency.pdf}
+\caption{Efficiency for OpenMP}
+\label{fig:efficiency_omp}
+\end{figure}
+
 \section{MPI}
+I performed the same analysis also for MPI, in this case the parameter is the number of processes. We first can take a look at the elapsed times, as shown in Figure~\ref{fig:res_mpi}. The first thing we notice is that the time has increased from the times from the baseline. As shown, the average time is 1.5 times larger then the sequential version. This is due to the high number of communication between processes. We can give an estimation of the number of messages exchanged between processes using the input size. Given an input of size $N$, $p$ processes, the number of communications is $N * 2 * (p - 1)$.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{mpi_results.pdf}
+\caption{Avarage elapsed time for each matrix size using the MPI}
+\label{fig:res_mpi}
+\end{figure}
+
+Since the execution times are much higher than the sequential version, the speedup shown in Figure~\ref{fig:speedup_mpi} is below 1, and almost constant with respect to the number of processes used. Also the efficiency has poor scores, as we can notice in Figure~\ref{fig:efficiency_mpi} 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{mpi_speedup.pdf}
+\caption{Speedup for MPI}
+\label{fig:speedup_mpi}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{mpi_efficiency.pdf}
+\caption{Efficiency for MPI}
+\label{fig:efficiency_mpi}
+\end{figure}
+
 \section{CUDA}
+Finally, we have a look at the last solution, CUDA. In this case, we have two parameters, the number of blocks, and the number of threads per block. The former can be a value $b \in \{2, 4, 6, 8\}$, while the latter is a value $t \in \{256, 512, 1024\}$. The values were chosen using heuristics.
+
+From the results in Figure~\ref{fig:res_cuda} we can notice that the results vary quite a lot based on the block size. Regarding the number of threads per block we can notice an inversion from the results using 2 and 4 blocks to these using 6 and 8 blocks. We have that in the first two experiments the best results is achieved with a higher number of threads per block, while in the latter perform better when the threads in each block is smaller. So while we increase the block size, we need to reduce the threads per block. So the organization of the total threads defined as $total\_threads = thread\_per\_block \times num\_blocks$ into blocks affects the execution time. In fact if we have 2 blocks, and each block has 1024 threads, the total number of thread is 2048, same as if we have 4 blocks with 512 threads each, but the execution times are different. If we use only two blocks the execution time for a matrix is 1.8 times slower than the one using 4 blocks. 
+
+So there must be a value for the total number of threads, that is optimum and how we organize it gives us better performance in terms of execution time. In Figure~\ref{fig:res_cuda_tot} we notice that the optimal value for the total number of threads is 1536, which is equal to the total number of threads in the used architecture. In Figure~\ref{fig:speedup_cuda_tot} we can see the speedup. The efficiency was not computed as the difference in the number of workers is excessive, and they are not comparable.
+
+\begin{figure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{elapsed_cuda_2_b.pdf}
+	\caption{2 blocks}
+	\label{fig:res_cuda_2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{elapsed_cuda_4_b.pdf}
+	\caption{4 blocks}
+	\label{fig:res_cuda_4}
+	\end{subfigure}
+	
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{elapsed_cuda_6_b.pdf}
+	\caption{6 blocks}
+	\label{fig:res_cuda_6}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{elapsed_cuda_8_b.pdf}
+	\caption{8 blocks}
+	\label{fig:res_cuda_8}
+	\end{subfigure}	
+\caption{Avarage elapsed time using CUDA with different block numbers}
+\label{fig:res_cuda}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{elapsed_cuda_tot.pdf}
+\caption{Avarage elapsed time for CUDA for total number of threads}
+\label{fig:res_cuda_tot}
+\end{figure}
+
+\begin{figure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{cuda_speedup_2_b.pdf}
+	\caption{2 blocks}
+	\label{fig:speed_cuda_2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{cuda_speedup_4_b.pdf}
+	\caption{4 blocks}
+	\label{fig:speed_cuda_4}
+	\end{subfigure}
+	
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{cuda_speedup_6_b.pdf}
+	\caption{6 blocks}
+	\label{fig:speed_cuda_6}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.5\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{cuda_speedup_8_b.pdf}
+	\caption{8 blocks}
+	\label{fig:speed_cuda_8}
+	\end{subfigure}	
+\caption{CUDA speedup with different block numbers}
+\label{fig:speedup_cuda}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{cuda_speedup_tot.pdf}
+\caption{CUDA speedup for total number of threads}
+\label{fig:speedup_cuda_tot}
+\end{figure}
+
